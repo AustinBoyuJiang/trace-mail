@@ -1,0 +1,15 @@
+node_modules/
+server/data/
+.env
+.env.*
+!.env.example
+server/.env
+server/.env.*
+!server/.env.example
+*.sqlite*
+*.log
+*.local.*
+.local/
+dist/
+.DS_Store
+.trace-local.json
