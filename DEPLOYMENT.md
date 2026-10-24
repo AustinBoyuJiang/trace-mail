@@ -42,6 +42,20 @@ trace.example.com {
 
 `GET /health` returns product and version. Private `/v1/…` requests without authentication return 401. The public tracking GIF must be anonymously accessible; an interactive login/challenge prevents image proxies from fetching it. The collector is single-user; a team service requires separate authentication and isolation.
 
+## CapRover and independently managed services
+
+CapRover regenerates `/captain/generated/nginx` when its configuration changes. Do not keep a manually added route or include only in that directory: it can disappear while the collector container remains healthy. Without its HTTPS server block, the domain may fall through to CapRover's default self-signed certificate, causing the extension to display `Offline`.
+
+For a collector managed outside CapRover's app registry, keep its server blocks in `/captain/data/nginx-shared/trace-mail.conf` on the host (available as `/nginx-shared/trace-mail.conf` inside Nginx). In CapRover's persistent **NGINX Base Config** template, add this line inside the existing `http` block, retaining its normal includes:
+
+```nginx
+include /nginx-shared/trace-mail.conf;
+```
+
+Back up the current settings first. Validate the generated configuration with `nginx -t`, reload Nginx, and verify that the include survives configuration regeneration. Keep certificate renewal configured for the separate route. Do not also load the same server blocks through an extra generated file.
+
+See [CapRover's NGINX customization documentation](https://caprover.com/docs/nginx-customization.html) for persistent templates and shared-file paths.
+
 ## Updates and recovery
 
 Back up the SQLite database before updating. For an online backup use SQLite's backup API rather than copying an active database file without its journal. Preserve the data volume and access token when rebuilding the container. Apply backend and extension updates together.
